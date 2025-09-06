@@ -1,6 +1,9 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class Main {
 
@@ -28,6 +31,20 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        GameProgress gameProgress1 = new GameProgress(10, 100, 2, 243.3);
+        GameProgress gameProgress2 = new GameProgress(45, 53, 4, 453.7);
+        GameProgress gameProgress3 = new GameProgress(67, 133, 7, 734.1);
+
+        saveGame("C:/Games/savegames/saveGame1.dat", gameProgress1);
+        saveGame("C:/Games/savegames/saveGame2.dat", gameProgress2);
+        saveGame("C:/Games/savegames/saveGame3.dat", gameProgress3);
+
+        List<String> filesDat = Arrays.asList("C:/Games/savegames/saveGame1.dat", "C:/Games/savegames/saveGame2.dat",
+                "C:/Games/savegames/saveGame3.dat");
+
+        zipFiles("C:/Games/savegames/savesGame.zip", filesDat);
+        deleteFilesDat(filesDat);
     }
 
     public static void createFolder(String folderPath) {
@@ -38,7 +55,7 @@ public class Main {
         } else {
             stringBuilder.append("Папка ").append(folderPath).append(" была создана ранее\n");
         }
-    };
+    }
 
     public static void createFile(String filePath) {
         File file = new File(filePath);
@@ -51,6 +68,44 @@ public class Main {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void saveGame(String pathDat, GameProgress gameProgress) {
+        try (FileOutputStream fos = new FileOutputStream(pathDat);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(gameProgress);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void zipFiles(String filePath, List<String> filesDat) {
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(filePath))) {
+            for (String fileDat : filesDat) {
+                try (FileInputStream fis = new FileInputStream(fileDat)) {
+                    ZipEntry zipEntry = new ZipEntry(fileDat);
+                    zos.putNextEntry(zipEntry);
+
+                    byte[] buffer = new byte[fis.available()];
+                    fis.read(buffer);
+                    zos.write(buffer);
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void deleteFilesDat(List<String> filesDat) {
+        for (String fileDat : filesDat) {
+            File file = new File(fileDat);
+            if (file.exists()) {
+                file.delete();
+            }
         }
     }
 }
