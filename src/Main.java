@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Main {
@@ -45,6 +46,10 @@ public class Main {
 
         zipFiles("C:/Games/savegames/savesGame.zip", filesDat);
         deleteFilesDat(filesDat);
+        openZip("C:/Games/savegames/savesGame.zip", "C:/Games/savegames");
+
+        GameProgress gp = openProgress("C:/Games/savegames/saveGame2.dat");
+        System.out.println(gp);
     }
 
     public static void createFolder(String folderPath) {
@@ -107,5 +112,34 @@ public class Main {
                 file.delete();
             }
         }
+    }
+
+    public static void openZip(String filePath, String dirPath) {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(filePath))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                String fileName = entry.getName();
+                try (FileOutputStream fos = new FileOutputStream(fileName)) {
+                    for (int c = zis.read(); c != -1; c = zis.read()) {
+                        fos.write(c);
+                    }
+                    fos.flush();
+                    zis.closeEntry();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static GameProgress openProgress(String fileDatPath) {
+        GameProgress gameProgress;
+        try (FileInputStream fis = new FileInputStream(fileDatPath);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            gameProgress = (GameProgress) ois.readObject();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+        return gameProgress;
     }
 }
